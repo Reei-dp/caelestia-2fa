@@ -24,13 +24,12 @@ Variants {
 
         name: "twofactor"
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: pinnedTop ? WlrLayer.Top : WlrLayer.Bottom
+        WlrLayershell.layer: WlrLayer.Top
         color: "transparent"
 
         anchors.top: true
         anchors.right: true
 
-        property bool pinnedTop: false
         property bool collapsed: false
         property var accounts: []
         property int accountCount: 0
@@ -38,8 +37,8 @@ Variants {
         property real progress: 1.0
         property string copiedAccount: ""
 
-        implicitWidth: card.implicitWidth + 32
-        implicitHeight: card.implicitHeight + 32
+        implicitWidth: card.width + 32
+        implicitHeight: card.height + 32
 
         Process {
             id: fetchProc
@@ -86,11 +85,12 @@ Variants {
             radius: Tokens.rounding.large
             border.width: 1
             border.color: Colours.tPalette.m3outlineVariant
-
-            readonly property int contentHeight: 28 + 28 + 10 + 2 + (win.collapsed ? 0 : (10 + Math.max(1, win.accountCount) * 50 + 28))
+            clip: true
 
             implicitWidth: 330
-            implicitHeight: contentHeight
+            width: implicitWidth
+            implicitHeight: win.collapsed ? (headerRow.implicitHeight + 28) : (mainCol.implicitHeight + 28)
+            height: implicitHeight
 
             Column {
                 id: mainCol
@@ -103,6 +103,8 @@ Variants {
 
                 // Header
                 RowLayout {
+                    id: headerRow
+
                     width: parent.width
                     spacing: 8
 
@@ -135,122 +137,117 @@ Variants {
                         }
                     }
 
-                    // Pin button (Desktop layer vs Above windows)
-                    Item {
-                        implicitWidth: 26
-                        implicitHeight: 26
-
-                        MaterialIcon {
-                            anchors.centerIn: parent
-                            text: win.pinnedTop ? "push_pin" : "keep"
-                            color: win.pinnedTop ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
-                            fontStyle: Tokens.font.icon.small
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: win.pinnedTop = !win.pinnedTop
-                        }
-                    }
-
                     // Collapse toggle button
-                    Item {
-                        implicitWidth: 26
-                        implicitHeight: 26
+                    StyledRect {
+                        id: collapseBtn
+
+                        implicitWidth: 28
+                        implicitHeight: 28
+                        radius: Tokens.rounding.full
+                        color: btnMouse.containsMouse ? Colours.tPalette.m3surfaceContainerHigh : "transparent"
 
                         MaterialIcon {
                             anchors.centerIn: parent
                             text: win.collapsed ? "expand_more" : "expand_less"
                             color: Colours.palette.m3onSurfaceVariant
-                            fontStyle: Tokens.font.icon.small
+                            fontStyle: Tokens.font.icon.medium
                         }
 
                         MouseArea {
+                            id: btnMouse
                             anchors.fill: parent
+                            hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: win.collapsed = !win.collapsed
                         }
                     }
                 }
 
-                // Progress bar
-                StyledRect {
-                    width: parent.width
-                    implicitHeight: 2
-                    color: Colours.palette.m3surfaceVariant
-                    radius: Tokens.rounding.full
+                // Collapsible body
+                Column {
+                    id: bodyCol
 
+                    width: parent.width
+                    spacing: 10
+                    visible: !win.collapsed
+
+                    // Progress bar
                     StyledRect {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: parent.width * win.progress
-                        color: win.remaining <= 5 ? Colours.palette.m3error : Colours.palette.m3primary
+                        width: parent.width
+                        implicitHeight: 2
+                        color: Colours.palette.m3surfaceVariant
                         radius: Tokens.rounding.full
 
-                        Behavior on width {
-                            Anim { type: Anim.FastSpatial }
+                        StyledRect {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: parent.width * win.progress
+                            color: win.remaining <= 5 ? Colours.palette.m3error : Colours.palette.m3primary
+                            radius: Tokens.rounding.full
+
+                            Behavior on width {
+                                Anim { type: Anim.FastSpatial }
+                            }
                         }
                     }
-                }
 
-                // Accounts List (visible if not collapsed)
-                Column {
-                    width: parent.width
-                    visible: !win.collapsed
-                    spacing: 6
+                    // Accounts List
+                    Column {
+                        width: parent.width
+                        spacing: 6
 
-                    Repeater {
-                        model: win.accounts
+                        Repeater {
+                            model: win.accounts
 
-                        delegate: StyledRect {
-                            id: accItem
+                            delegate: StyledRect {
+                                id: accItem
 
-                            required property var modelData
-                            readonly property bool isCopied: win.copiedAccount === modelData.name
+                                required property var modelData
+                                readonly property bool isCopied: win.copiedAccount === modelData.name
 
-                            width: parent.width
-                            implicitHeight: 44
-                            radius: Tokens.rounding.medium
-                            color: hoverArea.containsMouse ? Colours.tPalette.m3surfaceContainerHigh : "transparent"
+                                width: parent.width
+                                implicitHeight: 44
+                                radius: Tokens.rounding.medium
+                                color: hoverArea.containsMouse ? Colours.tPalette.m3surfaceContainerHigh : "transparent"
 
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
-                                spacing: 8
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 10
+                                    anchors.rightMargin: 10
+                                    spacing: 8
 
-                                StyledText {
-                                    text: accItem.modelData.name
-                                    font: Tokens.font.body.medium
-                                    color: Colours.palette.m3onSurface
-                                    elide: Text.ElideRight
-                                    Layout.fillWidth: true
+                                    StyledText {
+                                        text: accItem.modelData.name
+                                        font: Tokens.font.body.medium
+                                        color: Colours.palette.m3onSurface
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                    }
+
+                                    StyledText {
+                                        text: accItem.isCopied ? "Скопировано!" : accItem.modelData.code
+                                        font: Tokens.font.mono.medium
+                                        color: accItem.isCopied ? Colours.palette.m3secondary : Colours.palette.m3primary
+                                    }
+
+                                    MaterialIcon {
+                                        text: accItem.isCopied ? "check" : "content_copy"
+                                        color: accItem.isCopied ? Colours.palette.m3secondary : Colours.palette.m3onSurfaceVariant
+                                        fontStyle: Tokens.font.icon.small
+                                    }
                                 }
 
-                                StyledText {
-                                    text: accItem.isCopied ? "Скопировано!" : accItem.modelData.code
-                                    font: Tokens.font.mono.medium
-                                    color: accItem.isCopied ? Colours.palette.m3secondary : Colours.palette.m3primary
-                                }
-
-                                MaterialIcon {
-                                    text: accItem.isCopied ? "check" : "content_copy"
-                                    color: accItem.isCopied ? Colours.palette.m3secondary : Colours.palette.m3onSurfaceVariant
-                                    fontStyle: Tokens.font.icon.small
-                                }
-                            }
-
-                            MouseArea {
-                                id: hoverArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    win.copiedAccount = accItem.modelData.name;
-                                    copyResetTimer.restart();
-                                    Quickshell.execDetached(["python3", Paths.config + "/scripts/2fa.py", "copy", accItem.modelData.name]);
+                                MouseArea {
+                                    id: hoverArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        win.copiedAccount = accItem.modelData.name;
+                                        copyResetTimer.restart();
+                                        Quickshell.execDetached(["python3", Paths.config + "/scripts/2fa.py", "copy", accItem.modelData.name]);
+                                    }
                                 }
                             }
                         }
@@ -268,7 +265,7 @@ Variants {
                         }
 
                         StyledText {
-                            text: "+ Добавить в ~/.config/caelestia/2fa.json"
+                            text: "Добавить в ~/.config/caelestia/2fa.json"
                             font: Tokens.font.label.small
                             color: Colours.palette.m3outline
                             elide: Text.ElideRight
