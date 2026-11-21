@@ -7,7 +7,7 @@
 - Progress bar and 30-second countdown
 - Click-to-copy via wl-copy with desktop notifications
 - QR code batch import from Google Authenticator export
-- Collapsible compact header mode
+- Desktop widget on wallpaper layer (stays behind application windows)
 - Responsive Material Design 3 theming
 
 ## Dependencies
