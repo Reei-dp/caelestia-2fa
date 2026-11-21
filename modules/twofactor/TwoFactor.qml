@@ -24,7 +24,7 @@ Variants {
 
         name: "twofactor"
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.layer: WlrLayer.Bottom
         color: "transparent"
 
         anchors.top: true
