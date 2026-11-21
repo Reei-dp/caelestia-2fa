@@ -49,7 +49,14 @@ if [ -f "$SHELL_QML" ]; then
     fi
 fi
 
-# 5. Create default 2fa.json if missing
+# 5. Enable click pass-through on desktop layer in Regions.qml
+REGIONS_QML="$QS_CONFIG/modules/drawers/Regions.qml"
+if [ -f "$REGIONS_QML" ] && ! grep -q "TwoFactor Pass-Through" "$REGIONS_QML"; then
+    echo "Configuring click pass-through in Regions.qml..."
+    sed -i '/component R: Region/i \    // TwoFactor Pass-Through\n    Region {\n        x: root.win.width - 380\n        y: 0\n        width: 380\n        height: 450\n        intersection: Intersection.Subtract\n    }\n' "$REGIONS_QML"
+fi
+
+# 6. Create default 2fa.json if missing
 if [ ! -f "$CAELESTIA_CONFIG/2fa.json" ]; then
     cat <<EOF > "$CAELESTIA_CONFIG/2fa.json"
 [

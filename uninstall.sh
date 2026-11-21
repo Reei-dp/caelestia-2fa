@@ -21,6 +21,12 @@ if [ -f "$SHELL_QML" ]; then
     sed -i '/TwoFactor {}/d' "$SHELL_QML"
 fi
 
+# Clean Regions.qml
+REGIONS_QML="$QS_CONFIG/modules/drawers/Regions.qml"
+if [ -f "$REGIONS_QML" ]; then
+    sed -i '/TwoFactor Pass-Through/,+7d' "$REGIONS_QML"
+fi
+
 # Restart shell
 if command -v caelestia &>/dev/null; then
     killall qs 2>/dev/null || true

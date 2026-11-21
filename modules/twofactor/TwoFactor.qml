@@ -119,6 +119,15 @@ Variants {
                         font: Tokens.font.title.small
                         color: Colours.palette.m3onSurface
                         Layout.fillWidth: true
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                console.warn("TWOFACTOR_TITLE_CLICKED: currently " + win.collapsed);
+                                win.collapsed = !win.collapsed;
+                            }
+                        }
                     }
 
                     // Countdown badge
@@ -158,7 +167,10 @@ Variants {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: win.collapsed = !win.collapsed
+                            onClicked: {
+                                console.warn("TWOFACTOR_COLLAPSE_CLICKED: currently " + win.collapsed);
+                                win.collapsed = !win.collapsed;
+                            }
                         }
                     }
                 }
